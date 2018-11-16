@@ -198,8 +198,8 @@ function setTask(user_val, value_val){
 						}
 						tempuid = undefined;
 						var _intLink = "";
-						if(typeof(ClientEnv[typescript].link) === 'string'){
-							_intLink = ClientEnv[typescript].link;
+						if(typeof(CONFIG.env[typescript].link) === 'string'){
+							_intLink = CONFIG.env[typescript].link;
 						}
 						var _fileName = "";
 						if(typeof(CONFIG.env[typescript].com) === 'string'){
@@ -231,7 +231,7 @@ function setTask(user_val, value_val){
 			LOGGER.warn("FUNCTIONS-> Некорректный формат задания!");
 		}
 	} catch(e) {
-		LOGGER.error("FUNCTIONS-> Ошибка добавления задания в основное хранилище!");
+		LOGGER.error("FUNCTIONS-> Ошибка добавления задания в основное хранилище: "+e);
 	}
 }
 
