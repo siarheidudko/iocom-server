@@ -135,7 +135,7 @@ function replacer(data_val, value_val){
 				return data_val.replace(/\_/gi,".");
 			}
 		} else {
-			return '(не могу преобразовать, т.к. тип входящего аргумента не является строковым)';
+			return 'undefined';
 		}
 	} catch(e) {
 		LOGGER.warn("FUNCTIONS-> Ошибка преобразования имени пользователя!");

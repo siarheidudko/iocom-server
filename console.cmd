@@ -1,1 +1,2 @@
-NODE_ENV=production node process.console.js
+set NODE_ENV=production 
+node process.console.js

@@ -1,3 +1,3 @@
 #! /bin/bash 
 
-NODE_ENV=production  node process.console.js
+export NODE_ENV=production  && node process.console.js

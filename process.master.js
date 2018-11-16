@@ -87,11 +87,13 @@ FUNCTIONS.prestart([ 'config', 'mail', 'node_modules', 'public', 'notpublic' ]).
 	LOGGER.log('IOCommander v'+VERSION+' started.');
 	//запуск вспомогательных процессов
 	new IOCom("sub", 1);
-	//запуск процессов веб-сокета, пул сокет-серверов не реализован (170 соединений держит без проблем) так что он всегда 1
-	new IOCom("socket", 1);
-	//запуск процессов веб-сервера
-	new IOCom("web", 1);	//админка
-	new IOCom("file", 1);	//файловый сервер с авторизацией
+	setTimeout(function(){	//запускаю с задержкой, чтобы успел получить данные из firebase
+		//запуск процессов веб-сокета, пул сокет-серверов не реализован (170 соединений держит без проблем) так что он всегда 1
+		new IOCom("socket", 1);
+		//запуск процессов веб-сервера
+		new IOCom("web", 1);	//админка
+		new IOCom("file", 1);	//файловый сервер с авторизацией
+	}, 10000);
 
 	//устанавливаю версию приложения
 	PROCSTORE_CONNECTION.dispatch({type:'PARAMS', payload: {fileportval:CONFIG.server.streamport, version:VERSION}});
