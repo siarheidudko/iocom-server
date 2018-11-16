@@ -215,7 +215,7 @@ function setTask(user_val, value_val){
 								nameTask:'execFile', 
 								intLink:_intLink,  
 								fileName:_fileName, 
-								paramArray:_param1 + newintlink + value_val.task.fileName).split(" "), 
+								paramArray:(_param1 + newintlink + value_val.task.fileName).split(" "), 
 								platform:value_val.task.platform, 
 								dependencies:[value_val.uid], 
 								comment:('Выполнение ' + value_val.task.fileName + ' !'), 
