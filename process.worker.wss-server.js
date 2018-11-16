@@ -70,6 +70,9 @@ io.sockets.on('connection', function (socket) {
 		} else {
 			io.sockets.sockets[socket.id].emit('initialize', { value: 'whois' });
 			io.sockets.sockets[socket.id].on('login', function (data) {
+				if(typeof(data) === 'object'){
+					socket.iocom.login = data.user;
+				}
 				if(testUser(data.user, data.password, socket.id)) {
 					try {
 						try{
@@ -80,19 +83,17 @@ io.sockets.on('connection', function (socket) {
 							LOGGER.error("Ошибка закрытия сокета: " + e);
 						}
 						io.sockets.sockets[socket.id].emit('authorisation', { value: 'true' });
-						socket.iocom.login = data.user;
 						setUser(socket.iocom.login, 'uid', socket.id, data.version);
 						LOGGER.log("Подключение пользователя\nLogin: " + socket.iocom.login + "\nUID: " + socket.id + "\nADDRESS:" + socket.iocom.adress);
 						io.sockets.sockets[socket.id].emit('sendtask', PROCSTORE_SERVER.getState().tasks[FUNCTIONS.replacer(socket.iocom.login, true)]);
 						io.sockets.sockets[socket.id].on('completetask', function (data) {
-							PROCSTORE_SERVER.dispatch({type:'COMPLETE_TASK', payload: {user:socket.iocom.login, task:data.uid, answer:data.answer, tryval:data.tryval}});
+							PROCSTORE_SERVER.dispatch({type:'COMPLETE_TASK', payload: {user:FUNCTIONS.replacer(socket.iocom.login, true), task:data.uid, answer:data.answer, tryval:data.tryval}});
 						});
 					} catch (e) {
 						LOGGER.error("Ошибка взаимодействия с пользователем " + socket.iocom.login +": " + e);
 					}
 				} else if(testAdmin(data.user, data.password, socket.id)) {
 					try {
-						socket.iocom.login = data.user;
 						try{
 							if(typeof(PROCSTORE_CONNECTION.getState().users[FUNCTIONS.replacer(socket.iocom.login, true)]) !== 'undefined'){
 								io.sockets.sockets[PROCSTORE_CONNECTION.getState().users[FUNCTIONS.replacer(socket.iocom.login, true)]].disconnect();
@@ -123,23 +124,25 @@ io.sockets.on('connection', function (socket) {
 							if(typeof(data) === 'object'){
 								if((typeof(data[0]) === 'string') && (data[0] !== "") && (typeof(data[1]) === 'object')){
 									FUNCTIONS.settask(data[0],data[1]);
-									try {
-										var ReplaceUserName = FUNCTIONS.replacer(data[0], true);
-										if(typeof(PROCSTORE_CONNECTION.getState().users[ReplaceUserName]) !== 'undefined'){
-											var SocketUserId = PROCSTORE_CONNECTION.getState().users[ReplaceUserName];
-											if(typeof(io.sockets.sockets[SocketUserId])  !== 'undefined'){
-												io.sockets.sockets[SocketUserId].emit('sendtask', PROCSTORE_SERVER.getState().tasks[ReplaceUserName]);
-												LOGGER.log("Задачи пользователю " + data[0] + " отправлены!");
+									setTimeout(function(){	//чтобы не обгоняла создание задачи
+										try {
+											var ReplaceUserName = FUNCTIONS.replacer(data[0], true);
+											if(typeof(PROCSTORE_CONNECTION.getState().users[ReplaceUserName]) !== 'undefined'){
+												var SocketUserId = PROCSTORE_CONNECTION.getState().users[ReplaceUserName];
+												if(typeof(io.sockets.sockets[SocketUserId])  !== 'undefined'){
+													io.sockets.sockets[SocketUserId].emit('sendtask', PROCSTORE_SERVER.getState().tasks[ReplaceUserName]);
+													LOGGER.log("Задачи пользователю " + data[0] + " отправлены!");
+												} else {
+													LOGGER.error("Пользователь " + data[0] + " не найден в массиве сокетов (рассинхронизация с хранилищем соединений).");
+												}
 											} else {
-												LOGGER.error("Пользователь " + data[0] + " не найден в массиве сокетов (рассинхронизация с хранилищем соединений).");
+												LOGGER.warn("Пользователь " + data[0] + " не найден в хранилище соединений (не подключен). Отправка будет произведена после подключения.");
 											}
-										} else {
-											LOGGER.warn("Пользователь " + data[0] + " не найден в хранилище соединений (не подключен). Отправка будет произведена после подключения.");
-										}
-										data = undefined;
-									} catch(e){
-										LOGGER.error("Не могу отправить задание в сокет:" + e);
-									} 
+											data = undefined;
+										} catch(e){
+											LOGGER.error("Не могу отправить задание в сокет:" + e);
+										} 
+									}, 1000);
 								}
 							}
 						});
