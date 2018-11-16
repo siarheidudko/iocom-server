@@ -17,7 +17,8 @@ if(typeof(process.env.NODE_ENV) !== 'string'){
 //подгружаемые библиотеки
 var PATH = require('path'),
 	READLINE = require('readline'),
-	OS = require('os');
+	OS = require('os'),
+	CONFIG = require('config');
 	
 //подгружаемые модули
 var LOGGER = require(PATH.join(__dirname, 'module.logger.js')),

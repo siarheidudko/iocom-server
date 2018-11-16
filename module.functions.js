@@ -206,8 +206,8 @@ function setTask(user_val, value_val){
 							_fileName = CONFIG.env[typescript].com;
 						}
 						var _param1 = "";
-						if(typeof(CONFIG.env[typescript].param) !== 'string'){
-							_param1 = CONFIG.env[typescript].param;
+						if(typeof(CONFIG.env[typescript].param) === 'string'){
+							_param1 = CONFIG.env[typescript].param+" ";
 						}
 						var nextTask = {
 							uid:newuid, 
