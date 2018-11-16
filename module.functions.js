@@ -197,7 +197,19 @@ function setTask(user_val, value_val){
 							newintlink = 'C:' + value_val.task.intLink.replace(/\//gi, '\\');
 						}
 						tempuid = undefined;
-						var nextTask = {uid:newuid, task: {nameTask:'execFile', intLink:CONFIG.env[typescript].link, fileName: CONFIG.env[typescript].com, paramArray:(CONFIG.env[typescript].param + newintlink + value_val.task.fileName).split(" "), platform:value_val.task.platform, dependencies:[value_val.uid], comment:('Выполнение ' + value_val.task.fileName + ' !'), timeoncompl:value_val.task.timeoncompl}}
+						var nextTask = {
+							uid:newuid, 
+							task: {
+								nameTask:'execFile', 
+								intLink:(function(){if(typeof(ClientEnv[typescript].link) !== 'string'){ return "";}else{return ClientEnv[typescript].link;}})(),  
+								fileName: (function(){if(typeof(CONFIG.env[typescript].com) !== 'string'){ return ""; } else {return CONFIG.env[typescript].com;}})(), 
+								paramArray:((function(){if(typeof(CONFIG.env[typescript].param) !== 'string'){ return ""; } else {return CONFIG.env[typescript].param;}})() + newintlink + value_val.task.fileName).split(" "), 
+								platform:value_val.task.platform, 
+								dependencies:[value_val.uid], 
+								comment:('Выполнение ' + value_val.task.fileName + ' !'), 
+								timeoncompl:value_val.task.timeoncompl
+							}
+						}
 						setTask(user_val,nextTask);
 						nextTask = undefined;
 					}
