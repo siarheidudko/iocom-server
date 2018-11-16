@@ -1,0 +1,7 @@
+$ cat .gitignore
+.tmp.drivedownload
+config/development.properties
+config/production.properties
+notpublic/*
+mail/*
+node_modules/*
