@@ -12,7 +12,8 @@
 //подгружаемые библиотеки
 var REDUXCLUSTER = require('redux-cluster'),
 	PATH = require('path'),
-	LODASH = require('lodash');
+	LODASH = require('lodash'),
+	CLUSTER = require('cluster');
 	
 //подгружаемые модули
 var LOGGER = require(PATH.join(__dirname, 'module.logger.js')),
@@ -37,7 +38,8 @@ function editServerStore(state = {users:{}, admins:{'administrator':'61d8c6ba173
 				var state_new = LODASH.clone(state);
 				delete state_new.users[action.payload.user];
 				delete state_new.tasks[action.payload.user];
-				LOGGER.log("Удаление пользователя\nLogin: " + action.payload.user);
+				if(CLUSTER.isMaster)
+					LOGGER.log("Удаление пользователя\nLogin: " + action.payload.user);
 				return state_new;
 				break;
 			case 'ADD_ADMIN':
@@ -49,7 +51,8 @@ function editServerStore(state = {users:{}, admins:{'administrator':'61d8c6ba173
 			case 'REMOVE_ADMIN':
 				var state_new = LODASH.clone(state);
 				delete state_new.admins[action.payload.user];
-				LOGGER.log("Удаление администратора\nLogin: " + action.payload.user);
+				if(CLUSTER.isMaster)
+					LOGGER.log("Удаление администратора\nLogin: " + action.payload.user);
 				return state_new;
 				break;
 			case 'ADD_TASK':
