@@ -142,7 +142,7 @@ io.sockets.on('connection', function (socket) {
 										} catch(e){
 											LOGGER.error("Не могу отправить задание в сокет:" + e);
 										} 
-									}, 1000);
+									}, 5000);
 								}
 							}
 						});

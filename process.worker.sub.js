@@ -20,7 +20,7 @@ var PATH = require('path'),
 	FS = require('fs');
 
 //подгружаемые модули
-var FIREBASE = require(PATH.join(__dirname, 'module.firebase.js')),
+var// FIREBASE = require(PATH.join(__dirname, 'module.firebase.js')),
 	LOGGER = require(PATH.join(__dirname, 'module.logger.js')),
 	FUNCTIONS = require(PATH.join(__dirname, 'module.functions.js')),
 	SENDMAIL = require(PATH.join(__dirname, 'module.sendmail.js')),
@@ -30,15 +30,23 @@ var FIREBASE = require(PATH.join(__dirname, 'module.firebase.js')),
 //глобальные переменные
 var GenerateReportTimeout = false,
 	GenerateGroupTimeout = false;
-
+/*
 //подключаю FIREBASE
 FIREBASE.initialize().then(function(resolve){
 	if(resolve === 'okay'){
-		FIREBASE.worker();
+		//FIREBASE.worker();
 	}
 }).catch(function(error){
 	LOGGER.error(error);
-});
+});*/
+
+setInterval(function(){
+	FS.copyFile(PATH.join(__dirname, "iocomv2-server.dmp"),PATH.join(__dirname, "dmp", (new Date()).toJSON().substr(0,19).replace(/[:]/gi,"-")+".backup"),function(_err){
+		if(_err){
+			LOGGER.error("DUMP-> Не создана резервная копия: "+_err.message);
+		}
+	});
+}, 3600000);
 
 //подключаю отправку ошибок на email
 SENDMAIL.worker();

@@ -81,27 +81,36 @@ var IOCom = function(proc, count){
 };
 
 //проверяем целостность папок
-FUNCTIONS.prestart([ 'config', 'mail', 'node_modules', 'public', 'notpublic' ]).then(res=>{
-	
-	//мастер активирован
-	LOGGER.log('IOCommander v'+VERSION+' started.');
-	//запуск вспомогательных процессов
-	new IOCom("sub", 1);
-	setTimeout(function(){	//запускаю с задержкой, чтобы успел получить данные из firebase
-		//запуск процессов веб-сокета, пул сокет-серверов не реализован (170 соединений держит без проблем) так что он всегда 1
-		new IOCom("socket", 1);
-		//запуск процессов веб-сервера
-		new IOCom("web", 1);	//админка
-		new IOCom("file", 1);	//файловый сервер с авторизацией
-	}, 10000);
+FUNCTIONS.prestart([ 'config', 'mail', 'node_modules', 'public', 'notpublic', 'dmp' ]).then(res=>{
+	FS.copyFile(PATH.join(__dirname, "iocomv2-server.dmp"),PATH.join(__dirname, "dmp", (new Date()).toJSON().substr(0,19).replace(/[:]/gi,"-")+".backup"),function(_err){
+		if(_err){
+			LOGGER.error("DUMP-> Не создана резервная копия: "+_err.message);
+		}
+		PROCSTORE_SERVER.backup({
+			path:PATH.join(__dirname, "iocomv2-server.dmp"),
+			key:"iocomv2-server",
+			timeout: 60
+		}).then(function(val){
+			//мастер активирован
+			LOGGER.log('IOCommander v'+VERSION+' started.');
+			//запуск вспомогательных процессов
+			new IOCom("sub", 1);
+			setTimeout(function(){	//запускаю с задержкой, чтобы успел получить данные из firebase
+				//запуск процессов веб-сокета, пул сокет-серверов не реализован (170 соединений держит без проблем) так что он всегда 1
+				new IOCom("socket", 1);
+				//запуск процессов веб-сервера
+				new IOCom("web", 1);	//админка
+				new IOCom("file", 1);	//файловый сервер с авторизацией
+			}, 10000);
 
-	//устанавливаю версию приложения
-	PROCSTORE_CONNECTION.dispatch({type:'PARAMS', payload: {fileportval:CONFIG.server.streamport, version:VERSION}});
-	FS.unlink(PATH.join(OS.tmpdir(), "iocomv2-server.sock"), function(err){
-		PROCSTORE_SERVER.createServer({path:PATH.join(OS.tmpdir(), "iocomv2-server.sock"), logins:{"iocomv2":"iocommander"}});
-	});
-	FS.unlink(PATH.join(OS.tmpdir(), "iocomv2-conn.sock"), function(err){
-		PROCSTORE_CONNECTION.createServer({path:PATH.join(OS.tmpdir(), "iocomv2-conn.sock"), logins:{"iocomv2":"iocommander"}});
+			//устанавливаю версию приложения
+			PROCSTORE_CONNECTION.dispatch({type:'PARAMS', payload: {fileportval:CONFIG.server.streamport, version:VERSION}});
+
+			PROCSTORE_SERVER.createServer({path:PATH.join(OS.tmpdir(), "iocomv2-server.sock"), logins:{"iocomv2":"iocommander"}});
+			PROCSTORE_CONNECTION.createServer({path:PATH.join(OS.tmpdir(), "iocomv2-conn.sock"), logins:{"iocomv2":"iocommander"}});
+		}).catch(function(err){
+			LOGGER.err(err);
+		});
 	});
 
 }).catch(rej=>{LOGGER.error(rej);});

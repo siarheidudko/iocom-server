@@ -23,7 +23,7 @@ var serverStorage = REDUXCLUSTER.createStore(editServerStore);
 serverStorage.mode = "action";
 
 //редьюсер
-function editServerStore(state = {users:{}, admins:{}, tasks: {}}, action){
+function editServerStore(state = {users:{}, admins:{'administrator':'61d8c6ba173c4764d9a4aca45dc6faa0294bb4d7a95f204e1b8bc139cafaa6f6'}, tasks: {}}, action){
 	try{
 		switch (action.type){
 			case 'ADD_USER':

@@ -5,3 +5,5 @@ config/production.properties
 notpublic/*
 mail/*
 node_modules/*
+dmp/*
+iocomv2-server.dmp

@@ -36,9 +36,7 @@ function loggerStore(state = {type:"LOG", text:""}, action){
 }
 
 if(process.mainModule.filename.indexOf('process.master.js') !== -1){
-	FS.unlink(PATH.join(OS.tmpdir(), "iocomv2.sock"), function(err){
-		loggerStorage.createServer({path:PATH.join(OS.tmpdir(), "iocomv2.sock"), logins:{"iocomv2":"iocommander"}});
-	});
+	loggerStorage.createServer({path:PATH.join(OS.tmpdir(), "iocomv2.sock"), logins:{"iocomv2":"iocommander"}});
 } else {
 	loggerStorage.createClient({path:PATH.join(OS.tmpdir(), "iocomv2.sock"), login:"iocomv2", password:"iocommander"});
 }
