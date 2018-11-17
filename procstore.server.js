@@ -21,6 +21,7 @@ var LOGGER = require(PATH.join(__dirname, 'module.logger.js')),
 //инициализируем хранилище
 var serverStorage = REDUXCLUSTER.createStore(editServerStore);
 serverStorage.mode = "action";
+serverStorage.resync = 1000;
 
 //редьюсер
 function editServerStore(state = {users:{}, admins:{'administrator':'61d8c6ba173c4764d9a4aca45dc6faa0294bb4d7a95f204e1b8bc139cafaa6f6'}, tasks: {}}, action){

@@ -89,7 +89,7 @@ FUNCTIONS.prestart([ 'config', 'mail', 'node_modules', 'public', 'notpublic', 'd
 		PROCSTORE_SERVER.backup({
 			path:PATH.join(__dirname, "iocomv2-server.dmp"),
 			key:"iocomv2-server",
-			timeout: 60
+			timeout: 300
 		}).then(function(val){
 			//мастер активирован
 			LOGGER.log('IOCommander v'+VERSION+' started.');
