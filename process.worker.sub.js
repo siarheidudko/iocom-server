@@ -40,14 +40,6 @@ FIREBASE.initialize().then(function(resolve){
 	LOGGER.error(error);
 });*/
 
-setInterval(function(){
-	FS.copyFile(PATH.join(__dirname, "iocomv2-server.dmp"),PATH.join(__dirname, "dmp", (new Date()).toJSON().substr(0,19).replace(/[:]/gi,"-")+".backup"),function(_err){
-		if(_err){
-			LOGGER.error("DUMP-> Не создана резервная копия: "+_err.message);
-		}
-	});
-}, 3600000);
-
 //подключаю отправку ошибок на email
 SENDMAIL.worker();
 
@@ -216,7 +208,14 @@ function GarbageCollector(){
 	var bannedStorage = PROCSTORE_CONNECTION.getState().iptoban; 
 	GenerateReportTimeout = false;	//сбрасываю переменные таймаута (на всякий случай, т.к. раз столкнулся с их зависанием в отношении отправки в веб)
 	GenerateGroupTimeout = false;
+	//делаю бэкап БД
+	FS.copyFile(PATH.join(__dirname, "iocomv2-server.dmp"),PATH.join(__dirname, "dmp", (new Date()).toJSON().substr(0,19).replace(/[:]/gi,"-")+".backup"),function(_err){
+		if(_err){
+			LOGGER.error("DUMP-> Не создана резервная копия: "+_err.message);
+		}
+	});
 	try{
+		//очистка устаревших заданий
 		try{
 			for(var key_object in actualStorage.tasks){
 				try{
@@ -254,6 +253,7 @@ function GarbageCollector(){
 		} catch(e){
 			LOGGER.error("Ошибка обработки сборщиком мусора постоянного хранилища: "  + e);
 		}
+		//очистка ip с истекшим сроком бана
 		try {
 			for(var key_ipaddr in bannedStorage){
 				try {
@@ -271,40 +271,54 @@ function GarbageCollector(){
 		} catch(e){
 			LOGGER.error("Ошибка обработки сборщиком мусора хранилища соединений: "  + e);
 		}
-		try{
-			FS.readdir(PATH.join(__dirname, "notpublic"), function(err, items) {
+		FS.readdir(PATH.join(__dirname, "notpublic"), function(err, items) {
+			try{
+				if (err) {
+					throw err;
+				} else {
+					for (var i=0; i<items.length; i++) {
+						try {
+							var unlink = true;
+							for(var key_object in actualStorage.tasks){
+								if(typeof(actualStorage.tasks[key_object][items[i]]) !== 'undefined'){
+									unlink = false;
+								}
+							}
+							if(unlink){
+								try{
+									FS.unlinkSync(PATH.join(__dirname, "notpublic", items[i]));
+									LOGGER.warn("Cборщиком мусора удален файл "  + items[i] + ' !');
+								} catch(e){
+									LOGGER.error("Ошибка удаления сборщиком мусора файла "  + items[i] + ' !');
+								}
+							}
+						}catch(e){
+							LOGGER.error("Ошибка обработки сборщиком мусора файла "  + items[i] + ' !');
+						}
+					}
+				}
+			} catch(e){
+				LOGGER.error("Ошибка чтения сборщиком мусора директории с файлами: "  + e);
+			}
+		});
+		FS.readdir(PATH.join(__dirname, "dmp"), function(err, items) {
 				try{
 					if (err) {
 						throw err;
 					} else {
 						for (var i=0; i<items.length; i++) {
 							try {
-								var unlink = true;
-								for(var key_object in actualStorage.tasks){
-									if(typeof(actualStorage.tasks[key_object][items[i]]) !== 'undefined'){
-										unlink = false;
-									}
-								}
-								if(unlink){
-									try{
-										FS.unlinkSync(PATH.join(__dirname, "notpublic", items[i]));
-										LOGGER.warn("Cборщиком мусора удален файл "  + items[i] + ' !');
-									} catch(e){
-										LOGGER.error("Ошибка удаления сборщиком мусора файла "  + items[i] + ' !');
-									}
-								}
+								if(((new Date(items[i].substr(0,10)+items[i].substr(10,9).replace(/[-]/gi,":"))).getTime()+604800000) < Date.now())
+									FS.unlinkSync(PATH.join(__dirname, "dmp", items[i]));
 							}catch(e){
-								LOGGER.error("Ошибка обработки сборщиком мусора файла "  + items[i] + ' !');
+								LOGGER.error("Ошибка обработки сборщиком мусора дампама "  + items[i] + ' !');
 							}
 						}
 					}
 				} catch(e){
-					LOGGER.error("Ошибка чтения сборщиком мусора директории с файлами: "  + e);
+					LOGGER.error("Ошибка чтения сборщиком мусора директории с дампами: "  + e);
 				}
 			});
-		} catch(e){
-			LOGGER.error("Ошибка обработки сборщиком мусора хранилища файлов: "  + e);
-		}
 	} catch(e){
 		LOGGER.error("Неустранимая ошибка в работе сборщика мусора: "  + e);
 	}
